@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VHAST PDF Merger</title>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <style>
+    body {
+      background: #121212;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    input, button {
+      margin: 10px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      background: #03DAC6;
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #018786;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>VHAST PDF Merge Tool</h2>
+    <input type="file" id="pdf1" accept="application/pdf" />
+    <br>
+    <input type="file" id="pdf2" accept="application/pdf" />
+    <br>
+    <button onclick="mergePDFs()">Merge PDFs</button>
+  </div>
+
+  <script>
+    async function mergePDFs() {
+      const file1 = document.getElementById('pdf1').files[0];
+      const file2 = document.getElementById('pdf2').files[0];
+
+      if (!file1 || !file2) {
+        alert("Please select both PDF files.");
+        return;
+      }
+
+      const pdfBytes1 = await file1.arrayBuffer();
+      const pdfBytes2 = await file2.arrayBuffer();
+
+      const mergedPdf = await PDFLib.PDFDocument.create();
+
+      const pdf1 = await PDFLib.PDFDocument.load(pdfBytes1);
+      const pdf2 = await PDFLib.PDFDocument.load(pdfBytes2);
+
+      const pages1 = await mergedPdf.copyPages(pdf1, pdf1.getPageIndices());
+      pages1.forEach((page) => mergedPdf.addPage(page));
+
+      const pages2 = await mergedPdf.copyPages(pdf2, pdf2.getPageIndices());
+      pages2.forEach((page) => mergedPdf.addPage(page));
+
+      const mergedPdfBytes = await mergedPdf.save();
+
+      // Create and download the merged file
+      const blob = new Blob([mergedPdfBytes], { type: "application/pdf" });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'merged.pdf';
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
